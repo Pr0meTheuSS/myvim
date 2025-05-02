@@ -12,7 +12,7 @@ fn main() -> std::io::Result<()>  {
     let mut stdout = stdout();
     let mut buffer: Vec<Vec<char>> = vec![vec![]];
     let mut cursor_x = 0;
-    let mut cursor_y = 0;
+    let cursor_y = 0;
 
     stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
     stdout.execute(cursor::MoveTo(0, 0))?;
@@ -20,7 +20,7 @@ fn main() -> std::io::Result<()>  {
     
 
     loop {
-        stdout.execute(cursor::MoveTo(cursor_x as u16, cursor_y as u16));
+        stdout.execute(cursor::MoveTo(cursor_x as u16, cursor_y as u16))?;
         stdout.flush()?;
         
         if let Event::Key(event) = read()? {
