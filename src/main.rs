@@ -1,12 +1,11 @@
-use std::io::{stdout, Write};
 use crossterm::{
-    cursor,
-    event::{read, Event, KeyCode},
-    terminal::{enable_raw_mode, disable_raw_mode, ClearType},
-    ExecutableCommand,
+    ExecutableCommand, cursor,
+    event::{Event, KeyCode, read},
+    terminal::{ClearType, disable_raw_mode, enable_raw_mode},
 };
+use std::io::{Write, stdout};
 
-fn main() -> std::io::Result<()>  {
+fn main() -> std::io::Result<()> {
     enable_raw_mode()?;
 
     let mut stdout = stdout();
@@ -17,20 +16,19 @@ fn main() -> std::io::Result<()>  {
     stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
     stdout.execute(cursor::MoveTo(0, 0))?;
     println!("Enter 'q' to exit...");
-    
 
     loop {
         stdout.execute(cursor::MoveTo(cursor_x as u16, cursor_y as u16))?;
         stdout.flush()?;
-        
+
         if let Event::Key(event) = read()? {
             match event.code {
                 KeyCode::Char('q') => break,
                 KeyCode::Char(c) => {
                     buffer[cursor_y].insert(cursor_x, c);
-                    cursor_x+=1;
-                },
-                _ => todo!()
+                    cursor_x += 1;
+                }
+                _ => todo!(),
             }
         }
 
@@ -46,4 +44,3 @@ fn main() -> std::io::Result<()>  {
     disable_raw_mode()?;
     Ok(())
 }
-
