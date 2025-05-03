@@ -1,10 +1,10 @@
+use clap::Parser;
 use crossterm::{
     ExecutableCommand, cursor,
     event::{Event, KeyCode, read},
     terminal::{ClearType, disable_raw_mode, enable_raw_mode},
 };
-use std::io::{stdout};
-use clap::Parser;
+use std::io::stdout;
 
 mod editor;
 use editor::Editor;
@@ -17,15 +17,15 @@ struct Args {
     file: String,
 }
 
-use std::fs::read_to_string;
 use std::fs::File;
+use std::fs::read_to_string;
 
 fn read_lines(filename: &str) -> Vec<String> {
     read_to_string(filename)
-        .unwrap()  // panic on possible file-reading errors
-        .lines()  // split the string into an iterator of string slices
-        .map(String::from)  // make each slice into a string
-        .collect()  // gather them together into a vector
+        .unwrap() // panic on possible file-reading errors
+        .lines() // split the string into an iterator of string slices
+        .map(String::from) // make each slice into a string
+        .collect() // gather them together into a vector
 }
 
 use std::io::{self, Write};
@@ -44,7 +44,7 @@ fn write_buffer_to_file(buffer: &Vec<Vec<char>>, path: &str) -> io::Result<()> {
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
     let contents = read_lines(&args.file);
-    
+
     enable_raw_mode()?;
     let mut stdout = stdout();
     let mut editor = Editor::from_strings(contents);
@@ -60,8 +60,11 @@ fn main() -> std::io::Result<()> {
                 print!("{}", c);
             }
         }
-        
-        stdout.execute(cursor::MoveTo(editor.get_cursor_x() as u16, editor.get_cursor_y() as u16))?;
+
+        stdout.execute(cursor::MoveTo(
+            editor.get_cursor_x() as u16,
+            editor.get_cursor_y() as u16,
+        ))?;
         stdout.flush()?;
 
         if let Event::Key(event) = read()? {
@@ -77,11 +80,10 @@ fn main() -> std::io::Result<()> {
                 _ => {}
             }
         }
-
-   }
+    }
     write_buffer_to_file(&editor.get_content(), &args.file)?;
     disable_raw_mode()?;
-    
+
     Ok(())
 }
 
@@ -128,10 +130,7 @@ fn test_read_lines() {
 
 #[test]
 fn test_write_buffer_to_file() {
-    let buffer = vec![
-        vec!['H', 'e', 'l', 'l', 'o'],
-        vec!['W', 'o', 'r', 'l', 'd'],
-    ];
+    let buffer = vec![vec!['H', 'e', 'l', 'l', 'o'], vec!['W', 'o', 'r', 'l', 'd']];
 
     let temp_file = "test_write_buffer.txt";
     write_buffer_to_file(&buffer, temp_file).unwrap();
@@ -143,4 +142,3 @@ fn test_write_buffer_to_file() {
     // Удаляем временный файл
     std::fs::remove_file(temp_file).unwrap();
 }
-

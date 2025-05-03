@@ -5,7 +5,10 @@ pub struct Editor {
 }
 
 fn strings_to_char_buffer(lines: Vec<String>) -> Vec<Vec<char>> {
-    lines.into_iter().map(|line| line.chars().collect()).collect()
+    lines
+        .into_iter()
+        .map(|line| line.chars().collect())
+        .collect()
 }
 
 impl Editor {
@@ -16,18 +19,18 @@ impl Editor {
             cursor_y: 0,
         }
     }
-    
+
     pub fn from_strings(content: Vec<String>) -> Editor {
         let mut editor = Editor {
             buffer: vec![vec![]],
             cursor_x: 0,
             cursor_y: 0,
         };
-        
+
         editor.buffer = strings_to_char_buffer(content);
         return editor;
     }
-    
+
     pub fn insert_char(&mut self, c: char) {
         if self.cursor_y >= self.buffer.len() {
             self.buffer.push(vec![]);
@@ -56,7 +59,7 @@ impl Editor {
             self.cursor_x = self.cursor_x.min(self.buffer[self.cursor_y].len());
         }
     }
-    
+
     pub fn move_cursor_down(&mut self) {
         if self.cursor_y + 1 < self.buffer.len() {
             self.cursor_y += 1;
@@ -75,7 +78,7 @@ impl Editor {
             self.cursor_x += 1;
         }
     }
-    
+
     pub fn get_cursor_x(&self) -> usize {
         return self.cursor_x;
     }
@@ -83,8 +86,8 @@ impl Editor {
     pub fn get_cursor_y(&self) -> usize {
         return self.cursor_y;
     }
-    
-    pub fn get_content(&self) ->Vec<Vec<char>> {
+
+    pub fn get_content(&self) -> Vec<Vec<char>> {
         return self.buffer.clone();
     }
 }
@@ -161,4 +164,3 @@ mod tests {
         assert_eq!(editor.cursor_x, 0);
     }
 }
-

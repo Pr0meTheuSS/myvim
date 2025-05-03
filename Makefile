@@ -12,3 +12,6 @@ fmt:
 
 coverage:
 	cargo tarpaulin
+
+coverage-html:
+	cargo tarpaulin --out Html
