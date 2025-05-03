@@ -5,35 +5,38 @@ use crossterm::{
 };
 use std::io::{Write, stdout};
 
+mod editor;
+use editor::Editor;
+
 fn main() -> std::io::Result<()> {
     enable_raw_mode()?;
-
     let mut stdout = stdout();
-    let mut buffer: Vec<Vec<char>> = vec![vec![]];
-    let mut cursor_x = 0;
-    let cursor_y = 0;
+    let mut editor = Editor::new();
 
     stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
     stdout.execute(cursor::MoveTo(0, 0))?;
-    println!("Enter 'q' to exit...");
+    println!("Enter 'Esc' to exit...");
 
     loop {
-        stdout.execute(cursor::MoveTo(cursor_x as u16, cursor_y as u16))?;
+        stdout.execute(cursor::MoveTo(editor.get_cursor_x() as u16, editor.get_cursor_y() as u16))?;
         stdout.flush()?;
 
         if let Event::Key(event) = read()? {
             match event.code {
-                KeyCode::Char('q') => break,
-                KeyCode::Char(c) => {
-                    buffer[cursor_y].insert(cursor_x, c);
-                    cursor_x += 1;
-                }
-                _ => todo!(),
+                KeyCode::Esc => break,
+                KeyCode::Char(c) => editor.insert_char(c),
+                KeyCode::Backspace => editor.backspace(),
+                KeyCode::Enter => editor.enter(),
+                KeyCode::Up => editor.move_cursor_up(),
+                KeyCode::Down => editor.move_cursor_down(),
+                KeyCode::Left => editor.move_cursor_left(),
+                KeyCode::Right => editor.move_cursor_right(),
+                _ => {}
             }
         }
 
         stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
-        for (y, line) in buffer.iter().enumerate() {
+        for (y, line) in editor.buffer.iter().enumerate() {
             stdout.execute(cursor::MoveTo(0, y as u16))?;
             for c in line {
                 print!("{}", c);
@@ -44,3 +47,4 @@ fn main() -> std::io::Result<()> {
     disable_raw_mode()?;
     Ok(())
 }
+
