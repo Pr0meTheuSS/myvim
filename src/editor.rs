@@ -1,7 +1,16 @@
+#[derive(PartialEq)]
+pub enum Mode {
+    NormalMode,
+    InsertMode,
+    VisualMode,
+    CommandLineMode,
+}
+
 pub struct Editor {
     pub buffer: Vec<Vec<char>>,
     pub cursor_x: usize,
     pub cursor_y: usize,
+    mode: Mode,
 }
 
 fn strings_to_char_buffer(lines: Vec<String>) -> Vec<Vec<char>> {
@@ -17,6 +26,7 @@ impl Editor {
             buffer: vec![vec![]],
             cursor_x: 0,
             cursor_y: 0,
+            mode: Mode::NormalMode,
         }
     }
 
@@ -25,18 +35,25 @@ impl Editor {
             buffer: vec![vec![]],
             cursor_x: 0,
             cursor_y: 0,
+            mode: Mode::NormalMode,
         };
 
         editor.buffer = strings_to_char_buffer(content);
         return editor;
     }
-
+    
+    pub fn change_mode(&mut self, mode: Mode) {
+        self.mode = mode;
+    }
+    
     pub fn insert_char(&mut self, c: char) {
-        if self.cursor_y >= self.buffer.len() {
-            self.buffer.push(vec![]);
+        if self.mode == Mode::InsertMode {
+            if self.cursor_y >= self.buffer.len() {
+                self.buffer.push(vec![]);
+            }
+            self.buffer[self.cursor_y].insert(self.cursor_x, c);
+            self.cursor_x += 1;
         }
-        self.buffer[self.cursor_y].insert(self.cursor_x, c);
-        self.cursor_x += 1;
     }
 
     pub fn backspace(&mut self) {
@@ -99,6 +116,8 @@ mod tests {
     #[test]
     fn test_insert_char() {
         let mut editor = Editor::new();
+        editor.change_mode(Mode::InsertMode);
+
         editor.insert_char('a');
         assert_eq!(editor.buffer[0], vec!['a']);
         assert_eq!(editor.cursor_x, 1);
@@ -107,6 +126,8 @@ mod tests {
     #[test]
     fn test_backspace() {
         let mut editor = Editor::new();
+        editor.change_mode(Mode::InsertMode);
+
         editor.insert_char('a');
         editor.insert_char('b');
         editor.backspace();
@@ -117,6 +138,8 @@ mod tests {
     #[test]
     fn test_enter() {
         let mut editor = Editor::new();
+        editor.change_mode(Mode::InsertMode);
+
         editor.insert_char('a');
         editor.insert_char('b');
         editor.enter();
@@ -130,6 +153,8 @@ mod tests {
     #[test]
     fn test_move_cursor_up_down() {
         let mut editor = Editor::new();
+        editor.change_mode(Mode::InsertMode);
+
         editor.insert_char('x');
         editor.enter();
         editor.insert_char('y');
@@ -146,13 +171,14 @@ mod tests {
     #[test]
     fn test_move_cursor_left_right() {
         let mut editor = Editor::new();
+        editor.change_mode(Mode::InsertMode);
+
         editor.insert_char('a');
         editor.insert_char('b');
         editor.move_cursor_left();
         assert_eq!(editor.cursor_x, 1);
         editor.move_cursor_right();
         assert_eq!(editor.cursor_x, 2);
-        // Right beyond buffer should not increase cursor_x
         editor.move_cursor_right();
         assert_eq!(editor.cursor_x, 2);
     }
@@ -160,7 +186,9 @@ mod tests {
     #[test]
     fn test_backspace_on_empty_line() {
         let mut editor = Editor::new();
-        editor.backspace(); // shouldn't panic
+        editor.change_mode(Mode::InsertMode);
+
+        editor.backspace();
         assert_eq!(editor.cursor_x, 0);
     }
 }

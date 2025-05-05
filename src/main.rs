@@ -7,12 +7,14 @@ use crossterm::{
 use std::io::stdout;
 
 mod editor;
+mod mode_manager;
+mod state_machine;
+
 use editor::Editor;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
-    /// Путь к файлу
     #[arg(short, long)]
     file: String,
 }
@@ -22,10 +24,10 @@ use std::fs::read_to_string;
 
 fn read_lines(filename: &str) -> Vec<String> {
     read_to_string(filename)
-        .unwrap() // panic on possible file-reading errors
-        .lines() // split the string into an iterator of string slices
-        .map(String::from) // make each slice into a string
-        .collect() // gather them together into a vector
+        .unwrap()
+        .lines()
+        .map(String::from)
+        .collect()
 }
 
 use std::io::{self, Write};
@@ -87,33 +89,6 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-use std::process::{Command, Stdio};
-
-#[test]
-fn test_run_with_args() {
-    // создаём временный файл для теста
-    let temp_file = "test_file.txt";
-    let mut file = File::create(temp_file).unwrap();
-    writeln!(file, "Hello, world!").unwrap();
-
-    // вызываем команду с аргументами
-    // let output = Command::new("cargo")
-    //    .arg("run")
-    //    .arg("--")
-    //    .arg("--file")
-    //    .arg(temp_file)
-    //    .output()
-    //    .expect("Failed to run cargo");
-
-    // проверяем, что нет ошибок
-    // assert!(output.status.success());
-    // let stdout = String::from_utf8_lossy(&output.stdout);
-    // assert!(stdout.contains("Hello, world!"));
-
-    // удаляем временный файл
-    std::fs::remove_file(temp_file).unwrap();
-}
-
 #[test]
 fn test_read_lines() {
     let temp_file = "test_read_lines.txt";
@@ -124,7 +99,6 @@ fn test_read_lines() {
     let lines = read_lines(temp_file);
     assert_eq!(lines, vec!["Line 1", "Line 2"]);
 
-    // Удаляем временный файл
     std::fs::remove_file(temp_file).unwrap();
 }
 
@@ -139,6 +113,5 @@ fn test_write_buffer_to_file() {
     assert!(content.contains("Hello"));
     assert!(content.contains("World"));
 
-    // Удаляем временный файл
     std::fs::remove_file(temp_file).unwrap();
 }
