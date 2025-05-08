@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-struct FSM<State, Event> {
+pub struct FSM<State, Event> {
     transitions: HashMap<(State, Event), State>,
 }
 
@@ -10,17 +10,17 @@ where
     State: Eq + Hash + Clone,
     Event: Eq + Hash + Clone,
 {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             transitions: HashMap::new(),
         }
     }
 
-    fn add_transition(&mut self, from: State, event: Event, to: State) {
+    pub fn add_transition(&mut self, from: State, event: Event, to: State) {
         self.transitions.insert((from, event), to);
     }
 
-    fn next_state(&self, current: &State, event: &Event) -> Option<State> {
+    pub fn next_state(&self, current: &State, event: &Event) -> Option<State> {
         self.transitions.get(&(current.clone(), event.clone())).cloned()
     }
 }
