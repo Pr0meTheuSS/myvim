@@ -1,46 +1,21 @@
-use std::collections::HashMap;
-use std::hash::Hash;
 use crossterm::event::KeyCode;
+use crate::state_machine::FSM;
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-enum State {
+/// Editor states.
+pub enum State {
     NormalMode,
     InsertMode,
     VisualMode,
     CommandLineMode,
 }
 
-#[derive(Clone)]
-struct FSM<State, Event> {
-    transitions: HashMap<(State, Event), State>,
-}
-
-impl<State, Event> FSM<State, Event>
-where
-    State: Eq + Hash + Clone,
-    Event: Eq + Hash + Clone,
-{
-    fn new() -> Self {
-        Self {
-            transitions: HashMap::new(),
-        }
-    }
-
-    fn add_transition(&mut self, from: State, event: Event, to: State) {
-        self.transitions.insert((from, event), to);
-    }
-
-    fn next_state(&self, current: &State, event: &Event) -> Option<State> {
-        self.transitions.get(&(current.clone(), event.clone())).cloned()
-    }
-}
-
-pub struct EditorModeManager {
+pub struct ModeManager {
     state_machine: FSM<State, KeyCode>,
     current_state: State,
 }
 
-impl EditorModeManager {
+impl ModeManager {
     pub fn new() -> Self {
         use State::*;
         use KeyCode::*;
@@ -69,8 +44,8 @@ impl EditorModeManager {
         }
     }
 
-    pub fn current_state(&self) -> &State {
-        &self.current_state
+    pub fn current_state(&self) -> State {
+        self.current_state.clone()
     }
 }
 
@@ -80,14 +55,14 @@ mod tests {
 
     #[test]
     fn test_init_in_normal_mode() {
-        let state_manager = EditorModeManager::new();
-        assert_eq!(state_manager.current_state(), &State::NormalMode);
+        let state_manager = ModeManager::new();
+        assert_eq!(state_manager.current_state(), State::NormalMode);
     }
 
     #[test]
     fn test_go_to_insert_mode() {
-        let mut state_manager = EditorModeManager::new();
+        let mut state_manager = ModeManager::new();
         state_manager.handle_key(KeyCode::Char('i'));
-        assert_eq!(state_manager.current_state(), &State::InsertMode);
+        assert_eq!(state_manager.current_state(), State::InsertMode);
     }
 }

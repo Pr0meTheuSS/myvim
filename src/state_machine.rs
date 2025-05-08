@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// Simple generic state machine.
 pub struct FSM<State, Event> {
     transitions: HashMap<(State, Event), State>,
 }
@@ -15,7 +16,7 @@ where
             transitions: HashMap::new(),
         }
     }
-
+    
     pub fn add_transition(&mut self, from: State, event: Event, to: State) {
         self.transitions.insert((from, event), to);
     }

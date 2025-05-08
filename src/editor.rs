@@ -1,16 +1,13 @@
-#[derive(PartialEq)]
-pub enum Mode {
-    NormalMode,
-    InsertMode,
-    VisualMode,
-    CommandLineMode,
-}
+use crossterm::event::KeyCode;
+
+use crate::mode_manager::{ModeManager, State};
 
 pub struct Editor {
     pub buffer: Vec<Vec<char>>,
     pub cursor_x: usize,
     pub cursor_y: usize,
-    mode: Mode,
+    is_exiting: bool,
+    mode_manager: ModeManager,
 }
 
 fn strings_to_char_buffer(lines: Vec<String>) -> Vec<Vec<char>> {
@@ -26,8 +23,13 @@ impl Editor {
             buffer: vec![vec![]],
             cursor_x: 0,
             cursor_y: 0,
-            mode: Mode::NormalMode,
+            is_exiting: false,
+            mode_manager: ModeManager::new(),
         }
+    }
+
+    pub fn is_exiting(&self) -> bool {
+        return self.is_exiting;
     }
 
     pub fn from_strings(content: Vec<String>) -> Editor {
@@ -35,19 +37,44 @@ impl Editor {
             buffer: vec![vec![]],
             cursor_x: 0,
             cursor_y: 0,
-            mode: Mode::NormalMode,
+            mode_manager: ModeManager::new(),
+            is_exiting: false,
         };
 
         editor.buffer = strings_to_char_buffer(content);
         return editor;
     }
-    
-    pub fn change_mode(&mut self, mode: Mode) {
-        self.mode = mode;
+
+    pub fn handle_key(&mut self, key: KeyCode) {
+        
+        if self.mode_manager.current_state() == State::InsertMode {
+            match key {
+                KeyCode::Char(c) => self.insert_char(c),
+                KeyCode::Backspace => self.backspace(),
+                KeyCode::Enter => self.enter(),
+                KeyCode::Up => self.move_cursor_up(),
+                KeyCode::Down => self.move_cursor_down(),
+                KeyCode::Left => self.move_cursor_left(),
+                KeyCode::Right => self.move_cursor_right(),
+                _ => {}
+            }    
+        }
+        if self.mode_manager.current_state() == State::NormalMode {
+            match key {
+                KeyCode::Esc => self.is_exiting = true,
+                KeyCode::Up => self.move_cursor_up(),
+                KeyCode::Down => self.move_cursor_down(),
+                KeyCode::Left => self.move_cursor_left(),
+                KeyCode::Right => self.move_cursor_right(),
+                _ => {}
+            }    
+        }
+
+        self.mode_manager.handle_key(key);
     }
     
     pub fn insert_char(&mut self, c: char) {
-        if self.mode == Mode::InsertMode {
+        if self.mode_manager.current_state() == State::InsertMode {
             if self.cursor_y >= self.buffer.len() {
                 self.buffer.push(vec![]);
             }
@@ -116,7 +143,7 @@ mod tests {
     #[test]
     fn test_insert_char() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
         assert_eq!(editor.buffer[0], vec!['a']);
@@ -126,7 +153,7 @@ mod tests {
     #[test]
     fn test_backspace() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
         editor.insert_char('b');
@@ -138,7 +165,7 @@ mod tests {
     #[test]
     fn test_enter() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
         editor.insert_char('b');
@@ -153,7 +180,7 @@ mod tests {
     #[test]
     fn test_move_cursor_up_down() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('x');
         editor.enter();
@@ -161,17 +188,17 @@ mod tests {
 
         editor.move_cursor_up();
         assert_eq!(editor.cursor_y, 0);
-        assert_eq!(editor.cursor_x, 1); // x length
+        assert_eq!(editor.cursor_x, 1);
 
         editor.move_cursor_down();
         assert_eq!(editor.cursor_y, 1);
-        assert_eq!(editor.cursor_x, 1); // y length
+        assert_eq!(editor.cursor_x, 1);
     }
 
     #[test]
     fn test_move_cursor_left_right() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
         editor.insert_char('b');
@@ -186,7 +213,7 @@ mod tests {
     #[test]
     fn test_backspace_on_empty_line() {
         let mut editor = Editor::new();
-        editor.change_mode(Mode::InsertMode);
+        editor.handle_key(KeyCode::Char('i'));
 
         editor.backspace();
         assert_eq!(editor.cursor_x, 0);

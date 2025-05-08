@@ -1,7 +1,7 @@
 use clap::Parser;
 use crossterm::{
     ExecutableCommand, cursor,
-    event::{Event, KeyCode, read},
+    event::{Event, read},
     terminal::{ClearType, disable_raw_mode, enable_raw_mode},
 };
 use std::io::stdout;
@@ -56,7 +56,8 @@ fn main() -> std::io::Result<()> {
 
     loop {
         stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
-        for (y, line) in editor.buffer.iter().enumerate() {
+        let content = editor.buffer.iter().enumerate();
+        for (y, line) in content {
             stdout.execute(cursor::MoveTo(0, y as u16))?;
             for c in line {
                 print!("{}", c);
@@ -70,17 +71,10 @@ fn main() -> std::io::Result<()> {
         stdout.flush()?;
 
         if let Event::Key(event) = read()? {
-            match event.code {
-                KeyCode::Esc => break,
-                KeyCode::Char(c) => editor.insert_char(c),
-                KeyCode::Backspace => editor.backspace(),
-                KeyCode::Enter => editor.enter(),
-                KeyCode::Up => editor.move_cursor_up(),
-                KeyCode::Down => editor.move_cursor_down(),
-                KeyCode::Left => editor.move_cursor_left(),
-                KeyCode::Right => editor.move_cursor_right(),
-                _ => {}
-            }
+            editor.handle_key(event.code);
+        }
+        if editor.is_exiting() {
+            break;
         }
     }
     write_buffer_to_file(&editor.get_content(), &args.file)?;
