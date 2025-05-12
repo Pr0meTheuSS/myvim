@@ -1,14 +1,13 @@
 use clap::Parser;
 use crossterm::{
-    ExecutableCommand, cursor,
-    event::{Event, read},
-    terminal::{ClearType, disable_raw_mode, enable_raw_mode},
+    cursor, event::{read, Event}, terminal::{disable_raw_mode, enable_raw_mode} 
 };
-use std::io::stdout;
+use terminal::Terminal;
 
 mod editor;
 mod mode_manager;
 mod state_machine;
+mod terminal;
 
 use editor::Editor;
 
@@ -43,39 +42,53 @@ fn write_buffer_to_file(buffer: &Vec<Vec<char>>, path: &str) -> io::Result<()> {
     Ok(())
 }
 
+
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
     let contents = read_lines(&args.file);
+    let mut offset = 0;
 
     enable_raw_mode()?;
-    let mut stdout = stdout();
     let mut editor = Editor::from_strings(contents);
 
-    stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
-    stdout.execute(cursor::MoveTo(0, 0))?;
+    let mut terminal = Terminal::new()?;
+    terminal.clear();
 
     loop {
-        stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
-        let content = editor.buffer.iter().enumerate();
-        for (y, line) in content {
-            stdout.execute(cursor::MoveTo(0, y as u16))?;
+        terminal.clear();
+        let (_, terminal_height) = terminal.get_size();
+
+        let content = editor.get_content();
+
+        for (y, line) in content.iter().enumerate() {
+            terminal.move_cursor(0, y);
             for c in line {
                 print!("{}", c);
             }
         }
 
-        stdout.execute(cursor::MoveTo(
-            editor.get_cursor_x() as u16,
-            editor.get_cursor_y() as u16,
-        ))?;
-        stdout.flush()?;
+        let cursor_x = editor.get_cursor_x();
+        let  cursor_y = editor.get_cursor_y();
+
+        let (_, terminal_y) = terminal.get_cursor();
+        if cursor_y > terminal_height {
+            offset += 1;
+            terminal.scroll_up(offset);
+        }
+
+        terminal.move_cursor(cursor_x, cursor_y);
+        terminal.flush();
+
 
         if let Event::Key(event) = read()? {
             editor.handle_key(event.code);
         }
+
         if editor.is_exiting() {
             break;
         }
+
+
     }
     write_buffer_to_file(&editor.get_content(), &args.file)?;
     disable_raw_mode()?;
