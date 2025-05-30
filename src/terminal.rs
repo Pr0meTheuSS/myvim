@@ -1,6 +1,6 @@
 use std::io::{self, stdout, Stdout, Write};
 
-use crossterm::{cursor, terminal::ClearType, ExecutableCommand};
+use crossterm::{cursor::{self, Hide, Show}, terminal::ClearType, ExecutableCommand};
 
 pub struct Terminal {
     cursor_x: usize,
@@ -31,7 +31,11 @@ impl Terminal {
     }
 
     pub fn get_cursor(&self) -> (usize, usize) {
-        return (self.cursor_x, self.cursor_y);
+        let pos =  cursor::position();
+        match pos {
+            Ok((x, y)) => { return (x as usize, y as usize); },
+            Err(_) => todo!(),
+        }
     }
 
     pub fn get_size(&self) -> (usize, usize) {
@@ -52,6 +56,13 @@ impl Terminal {
 
     pub fn scroll_up(&mut self, offset: i64) {
         self.stdout.execute(crossterm::terminal::ScrollUp(offset.abs() as u16));
+    }
+
+    pub fn hide(&mut self) {
+        self.stdout.execute(Hide);
+    }
+    pub fn show(&mut self) {
+        self.stdout.execute(Show);
     }
 
     pub fn flush(&mut self) {
