@@ -24,11 +24,15 @@ use std::fs::read_to_string;
 use std::io::{self, Write};
 
 fn read_lines(filename: &str) -> Vec<String> {
-    read_to_string(filename)
-        .unwrap()
-        .lines()
-        .map(String::from)
-        .collect()
+    let content = match read_to_string(filename) {
+        Ok(content) => content,
+        Err(_) => {
+            File::create(filename).expect("Не удалось создать файл");
+            String::new()
+        }
+    };
+
+    content.lines().map(String::from).collect()
 }
 
 fn write_buffer_to_file(buffer: &Vec<Vec<char>>, path: &str) -> io::Result<()> {
