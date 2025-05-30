@@ -50,14 +50,6 @@ impl Terminal {
         }
     }
 
-    pub fn scroll_down(&mut self, offset: i64) {
-        self.stdout.execute(crossterm::terminal::ScrollDown(offset.abs() as u16));
-    }
-
-    pub fn scroll_up(&mut self, offset: i64) {
-        self.stdout.execute(crossterm::terminal::ScrollUp(offset.abs() as u16));
-    }
-
     pub fn hide(&mut self) {
         self.stdout.execute(Hide);
     }

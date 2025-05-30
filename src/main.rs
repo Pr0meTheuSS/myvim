@@ -27,7 +27,7 @@ fn read_lines(filename: &str) -> Vec<String> {
     let content = match read_to_string(filename) {
         Ok(content) => content,
         Err(_) => {
-            File::create(filename).expect("Не удалось создать файл");
+            File::create(filename).expect("Create new file.");
             String::new()
         }
     };
@@ -72,8 +72,7 @@ fn main() -> std::io::Result<()> {
         let (terminal_width, terminal_height) = terminal.get_size();
         let height = terminal_height as usize;
 
-        let cursor_x = editor.get_cursor_x();
-        let cursor_y = editor.get_cursor_y();
+        let (cursor_x, cursor_y) = editor.get_cursor();
 
         // Обновляем offset, если курсор выходит за экран
         if cursor_y < offset {

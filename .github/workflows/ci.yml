@@ -1,0 +1,70 @@
+name: Rust CI/CD
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*' # любые теги, начинающиеся с v (например, v1.0.0)
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Установка Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Кеш cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Сборка
+      run: cargo build --verbose
+
+    - name: Проверка форматирования
+      run: cargo fmt -- --check
+
+    - name: Проверка clippy
+      run: cargo clippy -- -D warnings
+
+    - name: Тестирование
+      run: cargo test --verbose
+
+  release:
+    name: Build Release Binary
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Установка Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Build release
+      run: cargo build --release
+
+    - name: Upload binary to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          target/release/*
