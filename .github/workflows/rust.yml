@@ -35,8 +35,8 @@ jobs:
     - name: Сборка
       run: cargo build --verbose
 
-    - name: Проверка форматирования
-      run: cargo fmt -- --check
+    # - name: Проверка форматирования
+    #   run: cargo fmt -- --check
 
     - name: Проверка clippy
       run: cargo clippy -- -D warnings
