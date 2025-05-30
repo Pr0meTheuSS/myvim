@@ -4,26 +4,29 @@ on:
   push:
     branches: [main]
     tags:
-      - 'v*' # любые теги, начинающиеся с v (например, v1.0.0)
+      - 'v*' # любые теги вида vX.Y.Z
   pull_request:
     branches: [main]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   check:
-    name: Build & Test
-    runs-on: ubuntu-latest
+    name: 🧪 Build & Test
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout
+    - name: 🛎️ Checkout
       uses: actions/checkout@v3
 
-    - name: Установка Rust
+    - name: 🦀 Install Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
 
-    - name: Кеш cargo
+    - name: 📦 Cache cargo
       uses: actions/cache@v3
       with:
         path: |
@@ -32,39 +35,45 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Сборка
+    - name: 🔧 Build
       run: cargo build --verbose
 
-    # - name: Проверка форматирования
-    #   run: cargo fmt -- --check
-
-    # - name: Проверка clippy
-    #   run: cargo clippy -- -D warnings
-
-    - name: Тестирование
+    - name: ✅ Test
       run: cargo test --verbose
 
   release:
-    name: Build Release Binary
+    name: 🚀 Release Build & Upload
     needs: check
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout
+    - name: 🛎️ Checkout
       uses: actions/checkout@v3
 
-    - name: Установка Rust
+    - name: 🦀 Install Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
 
-    - name: Build release
+    - name: 🔧 Build Release Binary
       run: cargo build --release
 
-    - name: Upload binary to release
+    - name: 📝 Install git-cliff
+      uses: taiki-e/install-action@v2
+      with:
+        tool: git-cliff
+
+    - name: 📄 Generate changelog
+      run: |
+        git cliff --tag "${GITHUB_REF##*/}" > CHANGELOG.md
+        cat CHANGELOG.md
+
+    - name: 🚢 Upload to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         files: |
           target/release/*
+        body_path: CHANGELOG.md
