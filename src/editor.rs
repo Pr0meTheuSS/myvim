@@ -18,16 +18,6 @@ fn strings_to_char_buffer(lines: Vec<String>) -> Vec<Vec<char>> {
 }
 
 impl Editor {
-    pub fn new() -> Self {
-        Self {
-            buffer: vec![vec![]],
-            cursor_x: 0,
-            cursor_y: 0,
-            is_exiting: false,
-            mode_manager: ModeManager::new(),
-        }
-    }
-
     pub fn is_exiting(&self) -> bool {
         return self.is_exiting;
     }
@@ -142,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_insert_char() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
@@ -152,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_backspace() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
@@ -164,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_enter() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
@@ -179,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_up_down() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('x');
@@ -197,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_left_right() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.insert_char('a');
@@ -212,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_backspace_on_empty_line() {
-        let mut editor = Editor::new();
+        let mut editor = Editor::from_strings([].to_vec());
         editor.handle_key(KeyCode::Char('i'));
 
         editor.backspace();
