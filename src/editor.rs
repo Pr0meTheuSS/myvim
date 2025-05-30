@@ -113,12 +113,8 @@ impl Editor {
         }
     }
 
-    pub fn get_cursor_x(&self) -> usize {
-        return self.cursor_x;
-    }
-
-    pub fn get_cursor_y(&self) -> usize {
-        return self.cursor_y;
+    pub fn get_cursor(&self) -> (usize, usize) {
+        return (self.cursor_x, self.cursor_y);
     }
 
     pub fn get_content(&self) -> Vec<Vec<char>> {
